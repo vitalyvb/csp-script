@@ -1,0 +1,147 @@
+
+Data types
+==========
+
+Primary data type is C 'int' - 32bit signed integer, essencially every variable is an 'int'.
+Valid range: -2147483648..2147483647
+
+Maps use a 8bit unsigned integers. Valid range: 0..255
+
+Constants are a special identifiers prepended by a '$' (dollar sign).
+Example: $TRUE
+
+Floating point, complex data types (structs, unions), enums and
+strings are not supported.
+
+Reserved keywords
+=================
+
+if      else    for       do   while  break  continue
+return  global  function  map
+
+
+Program format
+==============
+
+There are three primary sections in program file: global variables, maps and functions.
+
+Double slash '//' is a comment symbol. Everything between '//' and the end of line is
+ignored.
+
+Syntax is based on C mostly.
+
+Global
+======
+
+Global describe global variables, they are in scope of all functions and can not be overrided
+by local variables or function arguments with the same name. Multiple statements can be
+present.
+
+Example:
+    global q,w;
+    global e;
+
+Map
+===
+
+Map defines an equalent of C-language
+    unsigned char map_name[256];
+    map_name[a] = x;
+    map_name[b] = y;
+    map_name[c] = z;
+but in form of associative array:
+    map map_name {
+	a = x, b = y,
+	x = z,
+    }
+
+unitialized values are 0. 'Keys' and 'values' must be integers in range 0..255
+or constants, variable names, functions or other identifiers are not allowed.
+
+Function
+========
+
+Functions can have arguments and local variables, all names should be unique.
+Local variables are declared by assigning a value to them. Every local variable
+must be 'declared' before being referenced, but the value itself can be undefined
+if program flow doesn't set a value to it;
+
+Function returns an integer type value evaluated by a 'return' statement or 0
+otherwise.
+
+Body of a function is a list of expressions and statements.
+
+Syntax:
+    function func_name(arg1, arg2, arg3)
+    {
+	stmt1;
+	stmt2;
+	...
+	return expr1;
+    }
+
+Example:
+    function fib(n)
+    {
+        if (n<=2)
+            return 1;
+        else
+            return fib(n-2)+fib(n-1);
+    }
+
+Expressions
+===========
+
+Expressions can include numbers, function calls, mappings/arrays,
+parenthesis and operators
+
+Operators and precedence (lowest to highest)
+    =
+    > < >= <= == !=
+    | & ^ || &&
+    + -
+    / * %
+    -(unary) ~ !
+
+WARNING: operators && and || are NOT short-circuit, both parts of expression
+         are evaluated
+
+Example:
+    (1 + i) / 2 - func(1)
+
+Statements
+==========
+
+exprN is a single expression, stmtM is ether one
+statement or statement list in a braces - '{' and '}'
+
+Selection:
+
+    if (expr1)
+        stmt1;
+    else if (expr2)    // optional
+        stmt2;
+    else if (expr3)    // optional
+        stmt3;
+    else               // optional
+        stmt4;
+
+
+Iteration:
+
+    while (expr)
+        stmt;
+
+    do
+        stmt
+    while (expr);
+
+    for (e1; e2; e3)   // e1 must be present
+        stmt;
+
+'break' and 'continue' can be used inside a loop body.
+
+Not supported:
+
+    'switch' and 'case'
+    'goto' or 'jump'
