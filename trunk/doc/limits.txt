@@ -1,0 +1,85 @@
+
+General limits
+===============
+                                                bytes
+
+Maximum bytecode program size                    64K
+
+Global variables, maps, function arguments,      255
+local variables for any scope of visibility
+
+Functions (including api)                        253
+
+
+Bytecode limits
+===============
+
+Compiled bytecode maximum sizes for various
+parts of a program
+
+IF/IF ELSE/loops expressions                     255
+
+IF/loops body size                               64K
+
+
+Parser limits
+=============
+
+Most of these limits can be adjusted at a compile time.
+These are defaults.
+
+Lexical analyzer maximum 'word' length is 64 bytes. This
+limits identifier lengths, for example.
+
+Parser stack depth is 128 tokens. One token is used every
+time the parser needs to remember more input data to produce
+a valid bytecode. For example, to start to parse a mapping
+one must store 'map' reserved keyword, map name and a left brace.
+Next, four tokens are required (they are reused per a map item)
+for a from-to values, equals sign and comma. Right brace
+finishes map parsing and releases three tokens that were
+allocated at the beginning. Function and expression parsing
+is much more complex.
+
+One token is around 8 bytes.
+
+Parser must store all identifiers to produce correct
+bytecode. There are three namespaces: global, local variable
+names and function names. They store only text names (there's
+no any 'data' at this stage) and lengths. Default size of each
+namespace available to user is 256 bytes. For example,
+length of all global variable names should not exceed 256
+minus 1 byte per item.
+
+Function namespace stores a copy of API names.
+
+By default, parser uses approximately 2 Kbytes of stack RAM
+for its needs, memory is used only wher parser is running.
+
+There are internal static variables (44 bytes) and optional buffer
+for short error description (128 bytes). These are stored in '.bss'
+segment.
+
+VM limits
+=========
+
+When loading a program, the VM buffer is used for storing
+various internal VM data, program global variables and arrays.
+Buffer must be preserved between VM calls.
+
+Base VM structure size is 52(*) bytes. Additionally, 4 bytes are
+allocated for every global variable, map and user function.
+Arrays memory usage TBD when implemented.
+
+Every VM call uses a temporary storage for stack and other data.
+Expressions are evaluated in a stack-based fashion, worst-case is
+a 4 bytes per component, I think. Function call requires 28(*)
+plus 4 bytes per local variable and 9 bytes per nested statement.
+Local variables are allocated all at once, there are no any
+space optimizations or renaming. If there're if/else condition
+with 10 unique variables each, space for 20 variables will be
+allocated.
+
+Internal static variables take 8 bytes in '.bss'.
+
+*) all sizes are for reference only, actual size may differ
