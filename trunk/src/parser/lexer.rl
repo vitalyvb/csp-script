@@ -33,7 +33,6 @@
 
 #define TOKEN_UNDEFINED -2
 
-#define YY_USER_ACTION do { yylval->d.line = YY->lineno; } while (0)
 #define YY_PREPARE_TOK do { saved_tok_char = *YY->te; *YY->te = 0; } while (0)
 #define YY_RELEASE_TOK do { *YY->te = saved_tok_char; } while (0)
 
@@ -59,31 +58,30 @@
 #	'/*' { fgoto c_comment; };
 
 	[+\-*/(),{}\[\]=|~!&^%<>;]
-			=> { YY_USER_ACTION; tok = YY->ts[0]; fbreak; };
+			=> { tok = YY->ts[0]; fbreak; };
 
-	"if"		=> { YY_USER_ACTION; tok = KW_IF; fbreak; };
-	"else"		=> { YY_USER_ACTION; tok = KW_ELSE; fbreak; };
-	"for"		=> { YY_USER_ACTION; tok = KW_FOR; fbreak; };
-	"do"		=> { YY_USER_ACTION; tok = KW_DO; fbreak; };
-	"while"		=> { YY_USER_ACTION; tok = KW_WHILE; fbreak; };
-	"break"		=> { YY_USER_ACTION; tok = KW_BREAK; fbreak; };
-	"continue"	=> { YY_USER_ACTION; tok = KW_CONTINUE; fbreak; };
-	"return"	=> { YY_USER_ACTION; tok = KW_RETURN; fbreak; };
-	"global"	=> { YY_USER_ACTION; tok = KW_GLOBAL; fbreak; };
-	"function"	=> { YY_USER_ACTION; tok = KW_FUNCTION; fbreak; };
-	"map"		=> { YY_USER_ACTION; tok = KW_MAP; fbreak; };
+	"if"		=> { tok = KW_IF; fbreak; };
+	"else"		=> { tok = KW_ELSE; fbreak; };
+	"for"		=> { tok = KW_FOR; fbreak; };
+	"do"		=> { tok = KW_DO; fbreak; };
+	"while"		=> { tok = KW_WHILE; fbreak; };
+	"break"		=> { tok = KW_BREAK; fbreak; };
+	"continue"	=> { tok = KW_CONTINUE; fbreak; };
+	"return"	=> { tok = KW_RETURN; fbreak; };
+	"global"	=> { tok = KW_GLOBAL; fbreak; };
+	"function"	=> { tok = KW_FUNCTION; fbreak; };
+	"map"		=> { tok = KW_MAP; fbreak; };
 
-	"||"		=> { YY_USER_ACTION; tok = SY_OROR; fbreak; };
-	"&&"		=> { YY_USER_ACTION; tok = SY_ANDAND; fbreak; };
+	"||"		=> { tok = SY_OROR; fbreak; };
+	"&&"		=> { tok = SY_ANDAND; fbreak; };
 
-	">="		=> { YY_USER_ACTION; tok = SY_GE; fbreak; };
-	"<="		=> { YY_USER_ACTION; tok = SY_LE; fbreak; };
-	"=="		=> { YY_USER_ACTION; tok = SY_EQ; fbreak; };
-	"!="		=> { YY_USER_ACTION; tok = SY_NEQ; fbreak; };
+	">="		=> { tok = SY_GE; fbreak; };
+	"<="		=> { tok = SY_LE; fbreak; };
+	"=="		=> { tok = SY_EQ; fbreak; };
+	"!="		=> { tok = SY_NEQ; fbreak; };
 
 	number		=> {
 		char *stft;
-		YY_USER_ACTION;
 		YY_PREPARE_TOK;
 
 		yylval->d.num = strtol(YY->ts, &stft, 0);
@@ -98,30 +96,9 @@
 		YY_RELEASE_TOK;
 		fbreak;
 	};
-	identifier	=> {
-		int t, leng = YY->te-YY->ts;
-		YY_USER_ACTION;
 
-		/* check and return function identifier */
-		t = func_get(YY->ts, leng);
-		if (t >= 0){
-		    yylval->d.num = t;
-		    tok = FUNC;
-		    fbreak;
-		}
-
-		/* variable */
-		t = visible_var_get(YY->ts, leng);
-		if (t >= 0){
-		    yylval->d.num = t;
-		    tok = VAR;
-		    fbreak;
-		}
-
-		YY->token = YY->ts;
-		YY->token_len = leng;
-
-		tok = NEW_ID;
+	"$"? identifier	=> {
+		tok = rl_identifier_const(yylval, YY);
 
 		fbreak;
 	};
@@ -132,7 +109,37 @@
 
 %% write data nofinal;
 
+static int rl_identifier_const(YYSTYPE *yylval, struct ragel_lexer_t *YY)
+{
+    int t, leng = YY->te-YY->ts;
 
+    if (YY->ts[0] == '$'){
+	if (CSP_GET_CONST_VALUE(YY->ts+1, leng-1, &yylval->d.num)){
+	    set_error(CSP_ERR_LEX_CONST_UNDEF, YY->lineno, "undefined const");
+	    return -1;
+	}
+	return NUM;
+    }
+
+    /* check and return function identifier */
+    t = func_get(YY->ts, leng);
+    if (t >= 0){
+	yylval->d.num = t;
+	return FUNC;
+    }
+
+    /* variable */
+    t = visible_var_get(YY->ts, leng);
+    if (t >= 0){
+	yylval->d.num = t;
+	return VAR;
+    }
+
+    YY->token = YY->ts;
+    YY->token_len = leng;
+
+    return NEW_ID;
+}
 
 static int _yylex(YYSTYPE *yylval, struct ragel_lexer_t *YY)
 {
@@ -201,6 +208,8 @@ static int _yylex(YYSTYPE *yylval, struct ragel_lexer_t *YY)
 
     YY->p_offs = p - YY->buffer;
     YY->pe_offs = pe - YY->buffer;
+
+    yylval->d.line = YY->lineno;
 
     if ( YY->cs == clex_error ) {
 	/* unexpected token */

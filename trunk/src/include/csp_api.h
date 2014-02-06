@@ -61,6 +61,7 @@ int EXTERNAL csp_get_program_size(uint8_t *prog_buffer, int size);
 
 /* callbacks that application should define */
 int csp_text_input_callback (char *buf, int max_size);
+int csp_get_const_value(const char *name, int len, int *value);
 
 #endif /* CSP_PARSER_API_H */
 

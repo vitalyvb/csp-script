@@ -27,13 +27,14 @@
 #include "csp_incl.h"
 #include "csp_defs.h"
 #include "csp_vm.h"
+#include "csp_internal.h"
 
 #include "gen.h"
 
 
 #if 0
 #define TR(s, p...) \
-		fprintf(stderr, "@%03x  op:%02x %4d " s "\n",(int)(code-program), opcode, (int)(((char*)_frame->stack)-vm->vm_buffer), ## p)
+		fprintf(stderr, "@%03x  op:%02x %4d " s "\n",(int)(code-program), opcode, (int)(((uint8_t*)_frame->stack)-vm->vm_buffer), ## p)
 #else
 #define TR(s, p...)
 #endif
@@ -310,10 +311,10 @@ static int mapping_map_value(int mapid, int from, uint8_t **ptr)
 	map += SIZE_STR_MAPPING;
 
 	for (i=0;i<count;i+=2){
-	    if (map[0] == from){
+	    if (map[i] == from){
 		if (ptr)
-		    *ptr = &map[1];
-		return map[1];
+		    *ptr = &map[i+1];
+		return map[i+1];
 	    }
 	}
     }
@@ -828,7 +829,7 @@ static int vm_execute(struct vm_frame *_frame, const uint8_t *code_start, int si
 			argc = f_res;
 		    } else {
 			argc = STACK_VAL(-1);
-			f_res = csp_vm_api_call_callback(tmp - MACRO_OP_BUILTIN_COUNT, argc, &STACK_VAL(-(argc+1)), &op_res);
+			f_res = CSP_VM_API_CALL_CALLBACK(tmp - MACRO_OP_BUILTIN_COUNT, argc, &STACK_VAL(-(argc+1)), &op_res);
 		    }
 
 		    if (f_res<0)

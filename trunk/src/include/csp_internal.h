@@ -48,8 +48,17 @@ void csp_set_error(int err, int line, const char *msg, ...);
 #define set_error(e,l,x...) csp_set_error((e),(l),NULL)
 #endif
 
+/* internal aliases */
 #ifndef CSP_TEXT_INPUT_CALLBACK
-#define CSP_TEXT_INPUT_CALLBACK csp_text_input_callback /* internal alias */
+#define CSP_TEXT_INPUT_CALLBACK csp_text_input_callback
+#endif
+
+#ifndef CSP_GET_CONST_VALUE
+#define CSP_GET_CONST_VALUE csp_get_const_value
+#endif
+
+#ifndef CSP_VM_API_CALL_CALLBACK
+#define CSP_VM_API_CALL_CALLBACK csp_vm_api_call_callback
 #endif
 
 #endif /* CSP_INTERNAL_H */

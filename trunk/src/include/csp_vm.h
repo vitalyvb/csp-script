@@ -31,8 +31,6 @@
 #include <stdint.h>
 #include "csp_defs.h"
 
-int csp_vm_api_call_callback(int num, int argc, int *argv, int *res);
-
 int EXTERNAL csp_vm_init(uint8_t *vmbuf, int size);
 
 int EXTERNAL csp_vm_load_program(uint8_t *code_start, int progsize, int api_fncnt);
@@ -40,5 +38,8 @@ int EXTERNAL csp_vm_find_func(const char *name);
 
 int EXTERNAL csp_vm_run_function(int stack_size, int fn, int argc, int *argv);
 int EXTERNAL csp_vm_get_call_result(void);
+
+/* callbacks that application should define */
+int csp_vm_api_call_callback(int num, int argc, int *argv, int *res);
 
 #endif /* CSP_VM_H */
