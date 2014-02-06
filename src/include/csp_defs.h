@@ -91,6 +91,7 @@
 #define CSP_ERR_LEX_OVERFLOW 3
 #define CSP_ERR_LEX_BAD_TOKEN 4
 #define CSP_ERR_LEX_OUT_NAMESPACE 5
+#define CSP_ERR_LEX_CONST_UNDEF 6
 /* parser errors */
 #define CSP_ERR_PARSER_FAILURE 16 /* likely out of parser stack space */
 #define CSP_ERR_PARSE_ERROR 17

@@ -30,6 +30,7 @@ cleanall: clean
 
 arm: parser.tab.c lexer.tab.c
 	arm-none-eabi-gcc-4.8.1 -Os -mcpu=cortex-m3 -mtune=cortex-m3 -mfix-cortex-m3-ldrd -mthumb -D__thumb2__=1 \
+		-I$(TOPDIR)include \
 		-msoft-float -mno-sched-prolog -mapcs-frame -Os -fno-strict-aliasing -fwhole-program -c -o parser-arm.o allcode.c
 	arm-none-eabi-objdump -h -S parser-arm.o > parser-arm.lst
 	size parser-arm.o

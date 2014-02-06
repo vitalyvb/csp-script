@@ -113,6 +113,33 @@ int csp_vm_api_call_callback(int num, int argc, int *argv, int *res)
     return 0;
 }
 
+int csp_get_const_value(const char *name, int len, int *value)
+{
+
+#define xl(l) (len < (l) ? len : (l))
+
+    if (strncmp(name, "TRUE", xl(4)) == 0){
+	*value = 1;
+    } else
+    if (strncmp(name, "FALSE", xl(5)) == 0){
+	*value = 0;
+    } else
+    if (strncmp(name, "TEST7", xl(5)) == 0){
+	*value = 7;
+    } else
+    if (strncmp(name, "TEST8", xl(5)) == 0){
+	*value = 8;
+    } else
+    if (strncmp(name, "TEST9", xl(5)) == 0){
+	*value = 9;
+    } else {
+	return -1;
+    }
+
+#undef xl
+    return 0;
+}
+
 
 int load_file(char *fn)
 {
