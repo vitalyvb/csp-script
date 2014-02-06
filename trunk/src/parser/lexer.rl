@@ -115,7 +115,12 @@ static int rl_identifier_const(YYSTYPE *yylval, struct ragel_lexer_t *YY)
 
     if (YY->ts[0] == '$'){
 	if (CSP_GET_CONST_VALUE(YY->ts+1, leng-1, &yylval->d.num)){
-	    set_error(CSP_ERR_LEX_CONST_UNDEF, YY->lineno, "undefined const");
+	    uint8_t saved_tok_char;
+	    YY_PREPARE_TOK;
+
+	    set_error(CSP_ERR_LEX_CONST_UNDEF, YY->lineno, "Undefined: %s", YY->ts);
+
+	    YY_RELEASE_TOK;
 	    return -1;
 	}
 	return NUM;
