@@ -126,6 +126,7 @@ struct {
 %left '+' '-'
 %left '/' '*' '%'
 %left NEG 152 '~' '!'
+%left '['
 %start begin
 
 %type <d.num> anyvar
@@ -292,8 +293,8 @@ expr:
 	| call
 	| anyvar '=' expr			{ set_var($1); }
 
-	| arrayidx				{ push_var($<d.num>1); op_call(MACRO_OP_FUNC_GETIDX); }
-	| arrayidx '=' expr			{ push_var($<d.num>1); op_call(MACRO_OP_FUNC_SETIDX); }
+	| expr '[' expr ']'			{ op_call(MACRO_OP_FUNC_GETIDX); }
+	| expr '[' expr ']' '=' expr		{ op_call(MACRO_OP_FUNC_SETIDX); }
 
 	| expr '|' expr				{ binary_op(OP_BIN_OR);  }
 	| '~' expr				{ unary_op(OP_UN_BITNEG);  }
@@ -320,11 +321,6 @@ expr:
 	| '(' expr ')'
 	| NEW_ID				{ COPY_TOKEN; HANDLE_ERROR($<d.line>1, "Undefined: %s", token_value); }
 	| '(' error ')'				{ HANDLE_ERROR($<d.line>2, "Parse error: %s", "expr"); }
-	;
-
-/**************/
-
-arrayidx: VAR '[' expr ']'			{ $<d.num>$ = $<d.num>1; }
 	;
 
 /**************/

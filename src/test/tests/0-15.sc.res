@@ -1,3 +1,3 @@
-# ../test 0-15.sc main 2 88
+# ../test 0-15.sc main 2 8 8
 
-RESULT: need 2 args for function main()
+RESULT: exec main(): -12 0

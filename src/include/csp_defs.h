@@ -50,14 +50,24 @@
  * successfully and more memory (program stack space) it'll
  * require.
  */
-#define CSP_PARSER_STACK_DEPTH 128
-
+#define CSP_PARSER_STACK_DEPTH 192
 
 /*
  * Size of all names in a namespace in a program. Buffer is automatically
  * adjusted for builtin globals and function names;
  */
 #define CSP_NAMESPACE_SIZE 256
+
+/*
+ * Enable support for arrays
+ */
+#define CSP_ARRAYS_ENABLE 1
+
+/*
+ * If support for arrays is enabled, use malloc() to allocate buffer
+ * for arrays. If not set, vmbuf free space is used.
+ */
+#define CSP_ARRAYS_USE_MALLOC 0
  
 /**********************************************************/
 
@@ -70,7 +80,15 @@
 #endif
 
 #ifndef CSP_PARSER_STACK_DEPTH
-#define CSP_PARSER_STACK_DEPTH 128
+#define CSP_PARSER_STACK_DEPTH 192
+#endif
+
+#ifndef CSP_ARRAYS_ENABLE
+#define CSP_ARRAYS_ENABLE 0
+#endif
+
+#ifndef CSP_ARRAYS_USE_MALLOC
+#define CSP_ARRAYS_USE_MALLOC 0
 #endif
 
 #define CSP_NS_GLOBAL_NAMES_SIZE CSP_NAMESPACE_SIZE
@@ -114,6 +132,9 @@
 #define CSP_ERR_CALL_ARGC_MISMATCH 12
 #define CSP_ERR_VMBUF_OVERFLOW 13
 #define CSP_ERR_DIV_BY_ZERO 14
+#define CSP_ERR_OUT_OF_BOUND 15
+#define CSP_ERR_ARRAY_TYPE 16
+#define CSP_ERR_NO_MEMORY 17
 
 #endif /* CSC_PARSER_COMMON_H */
 
