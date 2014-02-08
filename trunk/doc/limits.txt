@@ -8,7 +8,9 @@ Maximum bytecode program size                    64K
 Global variables, maps, function arguments,      255
 local variables for any scope of visibility
 
-Functions (including api)                        253
+Maximum array size (element count)               64K
+
+Functions (including api)                        251
 
 
 Bytecode limits
@@ -31,7 +33,7 @@ These are defaults.
 Lexical analyzer maximum 'word' length is 64 bytes. This
 limits identifier lengths, for example.
 
-Parser stack depth is 128 tokens. One token is used every
+Parser stack depth is 192 tokens. One token is used every
 time the parser needs to remember more input data to produce
 a valid bytecode. For example, to start to parse a mapping
 one must store 'map' reserved keyword, map name and a left brace.
@@ -69,7 +71,11 @@ Buffer must be preserved between VM calls.
 
 Base VM structure size is 52(*) bytes. Additionally, 4 bytes are
 allocated for every global variable, map and user function.
-Arrays memory usage TBD when implemented.
+
+Arrays memory usage depend on element size and element count.
+Additionally, every array uses extra 4 bytes to store its type
+and size. Arrays can only be allocated, freeing arrays is
+not implemented. Allocation failure will fail script execution.
 
 Every VM call uses a temporary storage for stack and other data.
 Expressions are evaluated in a stack-based fashion, worst-case is

@@ -9,7 +9,7 @@ success=0
 for f in *.sc; do
     echo -n "Checking $f.... "
 
-    args=`cat $f | awk '/^\/\/@/ { fn=$2; c=0; a=""; for (n=3;n<13 && $n!="";n++) {c++; a=a $n;}; printf("%s %s %s ", fn, c, a); }'`
+    args=`cat $f | awk '/^\/\/@/ { fn=$2; c=0; a=""; for (n=3;n<13 && $n!="";n++) {c++; a=a " " $n;}; printf("%s %s %s ", fn, c, a); }'`
 
     res="${f}.res"
 

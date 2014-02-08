@@ -54,7 +54,7 @@
 
 	main := |*
 
-	'//' [^\n]* newline?;
+	'//' [^\n]* @{ YY->ts = p; } newline?;
 #	'/*' { fgoto c_comment; };
 
 	[+\-*/(),{}\[\]=|~!&^%<>;]

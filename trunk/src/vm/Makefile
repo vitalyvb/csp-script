@@ -5,10 +5,10 @@ CFLAGS+=-I$(TOPDIR)parser
 
 all: libvm.a
 
-libvm.a: vm.o
+libvm.a: vm.o arrays.o
 
 clean:
-	rm -f vm.o libvm.a
+	rm -f vm.o arrays.o libvm.a
 	rm -f vm-arm.S vm-arm.lst vm-arm.o
 
 

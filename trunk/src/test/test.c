@@ -82,12 +82,14 @@ void dumpmem(uint8_t *ptr, uint32_t size)
 
 static struct csp_names my_functions = {
     .buf =
+	"\011new_array"
 	"\004_add"
 	"\004_sub"
 	"\005_addx"
+	"\006_nargs"
 	,
-    .idx = 3,
-    .tail = 16,
+    .idx = 5,
+    .tail = 33,
 };
 
 int csp_vm_api_call_callback(int num, int argc, int *argv, int *res)
@@ -95,18 +97,24 @@ int csp_vm_api_call_callback(int num, int argc, int *argv, int *res)
     fprintf(stderr, "xcall %d\n", num);
 
     if (num == 0){
-	*res = argv[0] + argv[1];
+	return csp_vm_api_new_array(num, argc, argv, res);
     } else
     if (num == 1){
-	*res = argv[0] - argv[1];
+	*res = argv[0] + argv[1];
     } else
     if (num == 2){
+	*res = argv[0] - argv[1];
+    } else
+    if (num == 3){
 	int i, t = 0;
 
 	for (i=0;i<argc;i++)
 	    t += argv[i];
 
 	*res = t;
+    } else
+    if (num == 4){
+	*res = 55;
     } else
 	return -110;
 

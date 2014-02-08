@@ -30,6 +30,7 @@
 #include "csp_internal.h"
 
 #include "gen.h"
+#include "vm.h"
 
 
 #if 0
@@ -60,40 +61,8 @@
 
 /********************************************************/
 
-struct cache_item {
-    uint16_t offset;
-    uint8_t idx;
-    uint8_t _pad;
-};
-
 struct builtin_func {
     int (*handler)(int *args, int *res);
-};
-
-struct vm {
-    int globals_cnt;
-    int maps_cnt;
-    int funcs_cnt;
-
-    int api_func_cnt;
-
-    uint8_t *vm_buffer;	/* stack and call data for running functions */
-    uint8_t *vm_buffer_end;
-
-    struct cache_item *cache_maps;	/* points to structure tail */
-    struct cache_item *cache_funcs;	/* points to structure tail */
-    void *arrays_ptr;			/* points to structure tail */
-
-    int vm_bufsize;
-
-    uint8_t *func_names;
-    int func_names_len;
-    int func_call_result;
-
-    int global_vars[0];		/* buffer for global variables */
-/*    struct cache_item cache_maps[0];  */
-/*    struct cache_item cache_funcs[0]; */
-/*    uint8_t arrays[0]; */	/* buffer for arrays */
 };
 
 struct u_frame {
@@ -122,18 +91,6 @@ struct u_frame {
 # define PREV_UFRAME(f,u) (((u)->prev == 0) ? NULL : ((struct u_frame*)((uint8_t*)f + (u)->prev)))
 #endif
 
-#if OPTIMIZE_FOR_CODE_SIZE
-/* same as above */
-# define NO_PREV_FRAME_VAL (NULL)
-# define FRAME_VAL(f) (f)
-# define PREV_FRAME(f) ((f)->prev_frame)
-# define HAVE_PREV_FRAME(f) ((f)->prev_frame != 0)
-#else
-# define NO_PREV_FRAME_VAL (1) /* can't use 0 here, it's a first frame, but 1 is still pretty impossible */
-# define FRAME_VAL(f) ((uint8_t*)(f) - (uint8_t*)vm->vm_buffer)
-# define PREV_FRAME(f) ((struct vm_frame*)((uint8_t*)vm->vm_buffer + (f)->prev_frame))
-# define HAVE_PREV_FRAME(f) ((f)->prev_frame != NO_PREV_FRAME_VAL)
-#endif
 
 struct vm_frame {
     int *stack;		/* current stack position */
@@ -156,8 +113,21 @@ struct vm_frame {
     /* stack here */
 };
 
+#if OPTIMIZE_FOR_CODE_SIZE
+/* same as above */
+# define NO_PREV_FRAME_VAL (NULL)
+# define FRAME_VAL(f) (f)
+# define PREV_FRAME(f) ((f)->prev_frame)
+# define HAVE_PREV_FRAME(f) ((f)->prev_frame != 0)
+#else
+# define NO_PREV_FRAME_VAL (1) /* can't use 0 here, it's a first frame, but 1 is still pretty impossible */
+# define FRAME_VAL(f) ((uint8_t*)(f) - (uint8_t*)vm->vm_buffer)
+# define PREV_FRAME(f) ((struct vm_frame*)((uint8_t*)vm->vm_buffer + (f)->prev_frame))
+# define HAVE_PREV_FRAME(f) ((f)->prev_frame != NO_PREV_FRAME_VAL)
+#endif
+
 static uint8_t *program;
-static struct vm *vm;
+struct vm *vm;
 
 /********************************************************/
 
@@ -322,6 +292,70 @@ static int mapping_map_value(int mapid, int from, uint8_t **ptr)
     return -CSP_ERR_MAP_INVALID;
 }
 
+#if CSP_ARRAYS_ENABLE
+static int array_ptr_xchg(int array, int index, int *dst, int *newval)
+{
+    struct array_descr *descr;
+    void *data;
+
+    descr = (struct array_descr*) array;
+    data = ((char*)array) + sizeof(struct array_descr);
+
+#if !CSP_ARRAYS_USE_MALLOC
+    /* simple check that we're inside of allowed region */
+    if (((uint8_t*)descr < vm->arrays_ptr) || ((uint8_t*)data >= vm->tail_ptr)){
+	return -CSP_ERR_OUT_OF_BOUND;
+    }
+#endif
+
+    if (index < 0 || index >= descr->count)
+	return -CSP_ERR_OUT_OF_BOUND;
+
+    if (dst){
+	switch (descr->type){
+	    case MAPPING_TYPE_ARR_BIT: /* bit field */
+		// XXX add support for STM32 bit fields
+		*dst = !!(((uint8_t*)data)[index/8] & (1 << (index & 7)));
+		break;
+	    case MAPPING_TYPE_ARR_CHAR: /* int8_t array */
+		*dst = ((int8_t*)data)[index];
+		break;
+	    case MAPPING_TYPE_ARR_SHORT: /* int16_t array */
+		*dst = ((int16_t*)data)[index];
+		break;
+	    case MAPPING_TYPE_ARR_INT: /* int32_t array */
+		*dst = ((int32_t*)data)[index];
+		break;
+	    default:
+		return -CSP_ERR_VM_GENERIC;
+	}
+    }
+
+    if (newval){
+	switch (descr->type){
+	    case MAPPING_TYPE_ARR_BIT: /* bit field */
+		if (*newval)
+		    (((uint8_t*)data)[index/8] |= (1 << (index & 7)));
+		else
+		    (((uint8_t*)data)[index/8] &= ~(1 << (index & 7)));
+		break;
+	    case MAPPING_TYPE_ARR_CHAR: /* int8_t array */
+		((int8_t*)data)[index] = *newval;
+		break;
+	    case MAPPING_TYPE_ARR_SHORT: /* int16_t array */
+		((int16_t*)data)[index] = *newval;
+		break;
+	    case MAPPING_TYPE_ARR_INT: /* int32_t array */
+		((int32_t*)data)[index] = *newval;
+		break;
+	    default:
+		return -CSP_ERR_VM_GENERIC;
+	}
+    }
+
+    return 0;
+}
+#endif
 
 static int var_ptr_xchg(struct vm_frame *frame, int num, int *dst, int *newval)
 {
@@ -367,8 +401,9 @@ getset:
 
 static int func_builtin_getidx(int *args, int *res)
 {
-    int idx = args[-2];
-    int array = args[-1];
+    int array = args[-2];
+    int idx = args[-1];
+    int opres;
 
     if (array >= vm->globals_cnt && array < vm->maps_cnt + vm->globals_cnt){
 	/* mapping */
@@ -376,17 +411,25 @@ static int func_builtin_getidx(int *args, int *res)
 	return 2;
     }
     /* array */
+#if CSP_ARRAYS_ENABLE
+    //printf("     xxxxxx %d[%d]\n", array, idx);
 
+    opres = array_ptr_xchg(array, idx, res, NULL);
+    if (opres)
+	return opres;
+
+    return 2;
+#else
     return -CSP_ERR_NOARRAY_GET;
-/*    printf("     xxxxxx %d[%d]\n", array, idx); */
-/*    return 0; */
+#endif
 }
 
 static int func_builtin_setidx(int *args, int *res)
 {
-    int idx = args[-3];
-    int value = args[-2];
-    int array = args[-1];
+    int array = args[-3];
+    int idx = args[-2];
+    int value = args[-1];
+    int opres;
 
     /* XXX mapping can be in ROM */
 
@@ -405,9 +448,19 @@ static int func_builtin_setidx(int *args, int *res)
     }
     /* array */
 
+#if CSP_ARRAYS_ENABLE
+    //printf("     xxxxxx %d[%d]=%d\n", array, idx, value);
+
+    opres = array_ptr_xchg(array, idx, NULL, &value);
+    if (opres)
+	return opres;
+
+    *res = value;
+
+    return 3;
+#else
     return -CSP_ERR_NOARRAY_SET;
-/*    printf("     xxxxxx %d[%d]=%d\n", array, idx, value); */
-/*    return 0; */
+#endif
 }
 
 /********************************************************/
@@ -649,9 +702,9 @@ static int vm_execute(struct vm_frame *_frame, const uint8_t *code_start, int si
 	    tmp = opcode & OPCODE_VALMASK1;
 	    if (tmp & 0x20)
 		tmp |= 0xffffffe0; /* restore sign */
+	    TR("ldi %d", tmp);
 	    STACK_VAL(0) = tmp;
 	    STACK_MOVE(1);
-	    TR("ldi %d", tmp);
 	    break;
 	case 1:{ /* 0x40..0x7f */
 	    int res;
@@ -822,12 +875,25 @@ static int vm_execute(struct vm_frame *_frame, const uint8_t *code_start, int si
 		    int op_res;
 		    int f_res;
 
-		    TR("CALLint %d", tmp);
 
 		    if (tmp < MACRO_OP_BUILTIN_COUNT) {
+			/* parameters in stack:
+			 *  @-N  [ arg1, arg2, ... argN ]  @0
+			 * function must to know and return parameter count
+			 */
+			TR("CALLint %d", tmp);
 			f_res = builtins[tmp].handler(&STACK_VAL(0), &op_res);
-			argc = f_res;
+			argc = f_res-1;
 		    } else {
+			/* parameters in stack:
+			 *  @-N-1  [ arg1, arg2, ... argN, argCNT ]  @0
+			 * last argument is generated by a parser, it's a actual
+			 * arguments count.
+			 *
+			 * If function has zero arguments argCNTs cell is used
+			 * to store a return value.
+			 */
+			TR("CALLapi %d", tmp);
 			argc = STACK_VAL(-1);
 			f_res = CSP_VM_API_CALL_CALLBACK(tmp - MACRO_OP_BUILTIN_COUNT, argc, &STACK_VAL(-(argc+1)), &op_res);
 		    }
@@ -835,7 +901,7 @@ static int vm_execute(struct vm_frame *_frame, const uint8_t *code_start, int si
 		    if (f_res<0)
 			return f_res;
 		
-		    STACK_MOVE(-(argc - 1));
+		    STACK_MOVE(-argc);
 		    STACK_VAL(-1) = op_res;
 		} else {
 		    struct vm_frame *fr;
@@ -939,8 +1005,8 @@ static int vm_execute(struct vm_frame *_frame, const uint8_t *code_start, int si
 		case POP_ONE:
 		    tmp = 1;
 		dopoptmp:
-		    STACK_MOVE(-tmp);
 		    TR("pop %d", tmp);
+		    STACK_MOVE(-tmp);
 		    break;
 		}
 		break;
@@ -1066,8 +1132,10 @@ int EXTERNAL csp_vm_load_program(uint8_t *code_start, int progsize, int api_fncn
     vm->func_names = &code[p];
     vm->func_names_len = progsize - p;
 
-    vm->arrays_ptr = &vm->cache_funcs[idx]; /* just after funcs cache */
-
+#if CSP_ARRAYS_ENABLE && !CSP_ARRAYS_USE_MALLOC
+    vm->arrays_ptr = (uint8_t*)&vm->cache_funcs[idx]; /* just after funcs cache */
+    vm->tail_ptr = vm->arrays_ptr;
+#endif
     return 0;
 }
 

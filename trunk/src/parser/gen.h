@@ -31,6 +31,14 @@
 
 /***************************************************/
 
+struct array_descr {
+    uint8_t type;
+    uint8_t _reserved;
+    uint16_t count;
+};
+
+/***************************************************/
+
 int global_var_reg(const char *name, int namelen);
 
 int local_var_get(const char *name, int namelen);
@@ -147,6 +155,11 @@ void ctx_cur_func_finalize(int func_pc, int argn);
 #define SIZE_STR_MAPPING 4
 #define MAPPING_TYPE_ARRAY 1
 #define MAPPING_TYPE_PAIRS 2
+#define MAPPING_TYPE_ARR_BIT 0x10
+#define MAPPING_TYPE_ARR_CHAR 0x11
+#define MAPPING_TYPE_ARR_SHORT 0x12
+#define MAPPING_TYPE_ARR_INT 0x13
+
 int ctx_sw_map_reg(const char *name, int namelen);
 void ctx_cur_map_finalize(int func_pc);
 void ctx_cur_map_add(int from, int to);

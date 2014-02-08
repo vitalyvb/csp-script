@@ -24,23 +24,50 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CSP_VM_H
-#define CSP_VM_H
+#ifndef VM_H
+#define VM_H
 
-#include <stddef.h>
-#include <stdint.h>
+#include "csp_incl.h"
 #include "csp_defs.h"
+#include "csp_vm.h"
+#include "csp_internal.h"
 
-int EXTERNAL csp_vm_init(uint8_t *vmbuf, int size);
+struct cache_item {
+    uint16_t offset;
+    uint8_t idx;
+    uint8_t _pad;
+};
 
-int EXTERNAL csp_vm_load_program(uint8_t *code_start, int progsize, int api_fncnt);
-int EXTERNAL csp_vm_find_func(const char *name);
+struct vm {
+    int globals_cnt;
+    int maps_cnt;
+    int funcs_cnt;
 
-int EXTERNAL csp_vm_run_function(int stack_size, int fn, int argc, int *argv);
-int EXTERNAL csp_vm_get_call_result(void);
+    int api_func_cnt;
 
-/* callbacks that application should define */
-int csp_vm_api_call_callback(int num, int argc, int *argv, int *res);
-int EXTERNAL csp_vm_api_new_array(int num, int argc, int *argv, int *res);
+    uint8_t *vm_buffer;	/* stack and call data for running functions */
+    uint8_t *vm_buffer_end;
 
-#endif /* CSP_VM_H */
+    struct cache_item *cache_maps;	/* points to structure tail */
+    struct cache_item *cache_funcs;	/* points to structure tail */
+
+#if CSP_ARRAYS_ENABLE && !CSP_ARRAYS_USE_MALLOC
+    uint8_t *arrays_ptr;		/* points to structure tail */
+    uint8_t *tail_ptr;			/* points to structure tail */
+#endif
+
+    int vm_bufsize;
+
+    uint8_t *func_names;
+    int func_names_len;
+    int func_call_result;
+
+    int global_vars[0];		/* buffer for global variables */
+/*    struct cache_item cache_maps[0];  */
+/*    struct cache_item cache_funcs[0]; */
+/*    uint8_t arrays[0]; */	/* buffer for arrays */
+};
+
+extern struct vm *vm;
+
+#endif /* VM_H */
