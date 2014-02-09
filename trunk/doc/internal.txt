@@ -1,0 +1,132 @@
+Host functions
+=========
+
+Host provides functions for user program by
+ 1) passing structure with function names to csp_set_environ(), and
+ 2) defining csp_vm_api_call_callback() function.
+
+Function names are defined as follows.
+
+    struct csp_names my_functions = {
+        .buf =
+            "\011new_array"
+            "\004test",
+        .idx = 2,
+        .tail = 15,
+    };
+    ...
+    csp_set_environ(&my_functions);
+
+here, 'buf' is a specially crafted (char*) string - list of a name length
+byte followed by a name. Order is important - name index will be passed
+to a callback function. 'idx' is number of defined names and 'tail' is
+a length of a 'buf' string (or a pointer to a null terminating char).
+This structure is required for parse stage only and can be discarded later.
+
+When user program calls a host function, callback is called:
+
+  int csp_vm_api_call_callback(int num, int argc, int *argv, int *res);
+
+  'num' is a zero-based function index, as specified in a struct above.
+  'argc' and 'argv' - argument count and function call parameters.
+  'res' - pointer to a result value.
+
+Return value: 0 for a success, negative value to signal an error.
+
+For array support (see below) csp_vm_api_new_array() should be called
+when 'num' is 0 for example above.
+
+Consts
+======
+
+Constants are replaced with immediate value at a parse time, host
+application must provide a csp_get_const_value() callback:
+
+  int csp_get_const_value(const char *name, int len, int *value);
+
+  'name' and 'len' - name and lenght of a const identifier not
+                     including a '$' sign. 'name' is NOT a
+                     null-terminated string, len must be
+                     honoured
+  'value'          - pointer to store const value to.
+
+Return value: 0 for a success, negative value to signal an error.
+
+Arrays
+======
+
+Support for arrays can be enabled. There are 4 types of arrays: bit, signed char/short/int
+arrays. Memory for array is allocated by calling a special function and 32bit integer
+value of variable is treated as a pointer to an array structure. Note that to work,
+arrays require 32bit host pointers (i.e. x86_64 won't work). And, while it's possible
+to change the value of a variable pointing to an array, accessing array items after
+that will be impossible.
+
+Arrays with 32bit (int) elements may be pointers to other arrays, so, multidimensional
+arrays are possible.
+
+Host must provide a function for array allocation and call a csp_vm_api_new_array()
+to perform a low-level memory allocation and initialization of a metadata.
+
+csp_vm_api_new_array() expects two parameters from user program:
+  count - number of elements array holds, and
+  type  - type of an element:
+          0 - bit (bits are packed 8-per-byte)
+          1 - int8_t
+          2 - int16_t
+          4 - int32_t
+
+When accessing array elements, only array index checked for array
+boundaries, value is not checked - overflows are ignored.
+
+For bit arrays any non-zero value is converted to 1, for other
+arrays only lower 8 or 16 bits of a value are assigned without
+saturation check.
+
+
+A note about variables and values
+=================================
+
+While parsing, every human-readable identified is replaced by a 8-bit
+unsigned id. This id is used as an index for a corresponding memory
+region intrnally to get or set a value.
+
+0..N - global variables, (int*) pointer
+N..M - maps, (struct cache_item*)
+M..C - called function arguments, (int*) pointer
+C..L - local variables, (int*) pointer
+ ~~ 
+P..T - [runtime] memory region for arrays, etc.
+
+L must be less than 256.
+
+P must be greater than 255 to avoid colission with above variables
+and maps. These values are actual addresses of structures in RAM
+and care must be taken if host can use first 256 bytes of address
+space (usually it can't).
+
+As a side-effect of this design it's possible to assign a numeric
+value between N..M or P..T to any variable and 'de-reference' it
+with brackets. It also permits to use arrays and maps themselves
+as a function call arguments.
+
+
+A note about functions
+======================
+
+As with variables, function names are replaced with ids too.
+
+0..N - internal unnamed functions for high-level operations like
+       array support (N=4 now).
+N..K - functions provided by a host application. Array support
+       requires
+K..L - user functions
+
+L must be less than 256.
+
+It's not possible to call a function 'by a pointer' now.
+
+Also note that program must be recompiled when host changes
+count of its available funcitons.
+
+
