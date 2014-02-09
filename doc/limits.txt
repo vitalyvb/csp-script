@@ -10,7 +10,7 @@ local variables for any scope of visibility
 
 Maximum array size (element count)               64K
 
-Functions (including api)                        251
+Functions (incl. provided by a host)             251
 
 
 Bytecode limits
@@ -53,7 +53,7 @@ namespace available to user is 256 bytes. For example,
 length of all global variable names should not exceed 256
 minus 1 byte per item.
 
-Function namespace stores a copy of API names.
+Function namespace stores a copy of host-provided function names.
 
 By default, parser uses approximately 2 Kbytes of stack RAM
 for its needs, memory is used only wher parser is running.

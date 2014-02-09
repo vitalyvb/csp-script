@@ -3,7 +3,12 @@ Data types
 ==========
 
 Primary data type is C 'int' - 32bit signed integer, essencially every variable is an 'int'.
-Valid range: -2147483648..2147483647
+Hexadecimal and octal numbers are supported with standart '0x' and '0' prefixes.
+Valid decimal range: -2147483648..2147483647
+
+Support for arrays can be enabled. There are 4 types of arrays: bit, signed
+char/short/int arrays. It's possible to construct a multidimensional arrays with
+the help of int arrays (int array can hold a 'pointer' to any array).
 
 Maps use a 8bit unsigned integers. Valid range: 0..255
 
@@ -12,6 +17,7 @@ Example: $TRUE
 
 Floating point, complex data types (structs, unions), enums and
 strings are not supported.
+
 
 Reserved keywords
 =================
@@ -30,6 +36,7 @@ ignored.
 
 Syntax is based on C mostly.
 
+
 Global
 ======
 
@@ -40,6 +47,7 @@ present.
 Example:
     global q,w;
     global e;
+
 
 Map
 ===
@@ -57,6 +65,7 @@ but in form of associative array:
 
 unitialized values are 0. 'Keys' and 'values' must be integers in range 0..255
 or constants, variable names, functions or other identifiers are not allowed.
+
 
 Function
 ========
@@ -89,6 +98,7 @@ Example:
             return fib(n-2)+fib(n-1);
     }
 
+
 Expressions
 ===========
 
@@ -102,12 +112,14 @@ Operators and precedence (lowest to highest)
     + -
     / * %
     -(unary) ~ !
+    [](array index)
 
 WARNING: operators && and || are NOT short-circuit, both parts of expression
          are evaluated
 
 Example:
     (1 + i) / 2 - func(1)
+
 
 Statements
 ==========
