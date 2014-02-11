@@ -81,7 +81,7 @@ void dumpmem(uint8_t *ptr, uint32_t size)
 }
 
 static struct csp_names my_functions = {
-    .buf =
+    .buf = (uint8_t*)
 	"\011new_array"
 	"\004_add"
 	"\004_sub"

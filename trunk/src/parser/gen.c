@@ -75,7 +75,7 @@ static int ns_get_idx(const char *name, int namelen, struct csp_names *ns)
 
     len = *p++;
     while (len > 0 && (p < buf_end)){
-	if ((len == namelen) && strncmp(p, name, namelen) == 0){
+	if ((len == namelen) && strncmp((char*)p, name, namelen) == 0){
 	    return idx;
 	}
 	idx++;
@@ -96,7 +96,7 @@ static int ns_register(const char *name, int namelen, struct csp_names *ns)
     }
 
     ns->buf[ns->tail++] = namelen;
-    strncpy(&ns->buf[ns->tail], name, namelen);
+    strncpy((char*)(&ns->buf[ns->tail]), name, namelen);
     ns->tail += namelen;
 
     return ns->idx++;

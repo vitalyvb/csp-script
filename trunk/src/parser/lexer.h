@@ -31,12 +31,12 @@
 
 struct ragel_lexer_t {
 
-    uint8_t *te;	/* ragel */
-    uint8_t *ts;	/* ragel */
+    char *te;		/* ragel */
+    char *ts;		/* ragel */
     int cs;		/* ragel */
     int act;		/* ragel */
 
-    uint8_t *buffer;
+    char *buffer;
     uint16_t bufsize;
 
     /* state offsets */
@@ -48,7 +48,7 @@ struct ragel_lexer_t {
     uint8_t status;
 
     /* token information for a parser */
-    uint8_t *token;
+    char *token;
     uint16_t token_len;
 };
 
@@ -59,7 +59,7 @@ struct ragel_lexer_t {
 #define LEX_STATUS_OVERFLOW	3
 #define LEX_STATUS_BAD_TOKEN	4
 
-int scanner_init(struct ragel_lexer_t *YY, uint8_t *buffer, uint16_t size);
+int scanner_init(struct ragel_lexer_t *YY, char *buffer, uint16_t size);
 
 int yylex(void *yylval, void *lex_state);
 
