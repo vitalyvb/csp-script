@@ -61,7 +61,7 @@ void CSP_EXTERNAL csp_set_environ(const struct csp_names *functions)
 
 int CSP_EXTERNAL csp_parse(uint8_t *prog_buffer, int prog_size)
 {
-    uint8_t lex_buf[CSP_LEX_BUFSIZE];
+    char lex_buf[CSP_LEX_BUFSIZE];
 
     struct csp_names global, functions, local;
     struct ragel_lexer_t lex;

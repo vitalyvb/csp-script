@@ -148,10 +148,10 @@ static int rl_identifier_const(YYSTYPE *yylval, struct ragel_lexer_t *YY)
 
 static int _yylex(YYSTYPE *yylval, struct ragel_lexer_t *YY)
 {
-    uint8_t *p, *pe, *eof=NULL;
+    char *p, *pe, *eof=NULL;
 
     int tok = TOKEN_UNDEFINED;
-    uint8_t saved_tok_char;
+    char saved_tok_char;
     int buffree, buflen, len;
 
     if (prog_check_free_space()){
@@ -243,7 +243,7 @@ int yylex(void *yylval, void *lex_state)
     return res;
 }
 
-int scanner_init(struct ragel_lexer_t *YY, uint8_t *buffer, uint16_t size)
+int scanner_init(struct ragel_lexer_t *YY, char *buffer, uint16_t size)
 {
     memset(YY, 0, sizeof(struct ragel_lexer_t));
 
