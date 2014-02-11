@@ -20,7 +20,7 @@ OBJCOPY = $(TOOLS_PREFIX)objcopy
 ASFLAGS=
 
 CFLAGS=-Os -fno-strict-aliasing -ffunction-sections -fdata-sections
-CFLAGS+=-g -Wall -Wno-pointer-sign
+CFLAGS+=-g -Wall
 CFLAGS+=-I$(TOPDIR)include
 
 LDFLAGS=

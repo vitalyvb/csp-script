@@ -91,7 +91,7 @@ static int ns_register(const char *name, int namelen, struct csp_names *ns)
     int freespece = ns->size - ns->tail;
 
     if ((freespece-1) < namelen){
-	set_error(CSP_ERR_LEX_OUT_NAMESPACE, 0, "Out of namespace buffer");
+	csp_set_error(CSP_ERR_LEX_OUT_NAMESPACE, 0, "Out of namespace buffer");
 	return -1;
     }
 
@@ -240,7 +240,7 @@ int ctx_sw_map_reg(const char *name, int namelen)
     program_globals_finish();
 
     if ((pc_end - pc) <= sizeof(struct csp_mapping)){
-	set_error(CSP_ERR_CODE_OVERFLOW, 0, "Out of program space");
+	csp_set_error(CSP_ERR_CODE_OVERFLOW, 0, "Out of program space");
 	return -1;
     }
 
@@ -286,7 +286,7 @@ void ctx_cur_map_finalize(int map_pc)
     int pairs_size, mapping_size;
 
     if (map->count <= 0){
-	set_error(CSP_ERR_EMPTY_MAP, 0, "Empty map");
+	csp_set_error(CSP_ERR_EMPTY_MAP, 0, "Empty map");
 	return;
     }
 
@@ -326,7 +326,7 @@ void ctx_cur_map_add(int from, int to)
     struct csp_mapping *map = (struct csp_mapping *)&prog[pc];
 
     if (from >= MAPPING_SIZE || to >= MAPPING_SIZE || from < 0 || to < 0){
-	set_error(CSP_ERR_MAP_ITEM, 0, "Bad map item");
+	csp_set_error(CSP_ERR_MAP_ITEM, 0, "Bad map item");
 	return;
     }
 
