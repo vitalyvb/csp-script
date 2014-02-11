@@ -45,19 +45,19 @@ struct csp_names {
     uint8_t idx;
 };
 
-extern EXTERNAL int csp_errno;
-extern EXTERNAL int csp_errline;
+extern CSP_EXTERNAL int csp_errno;
+extern CSP_EXTERNAL int csp_errline;
 #if CSP_STRING_ERRORS
-extern EXTERNAL char csp_errstr[CSP_ERRSTR_SIZE];
+extern CSP_EXTERNAL char csp_errstr[CSP_ERRSTR_SIZE];
 #else
 #define csp_errstr ""
 #endif
 
-void EXTERNAL csp_init(void);
-void EXTERNAL csp_free(void);
-void EXTERNAL csp_set_environ(const struct csp_names *functions);
-int EXTERNAL csp_parse(uint8_t *prog_buffer, int size);
-int EXTERNAL csp_get_program_size(uint8_t *prog_buffer, int size);
+void CSP_EXTERNAL csp_init(void);
+void CSP_EXTERNAL csp_free(void);
+void CSP_EXTERNAL csp_set_environ(const struct csp_names *functions);
+int CSP_EXTERNAL csp_parse(uint8_t *prog_buffer, int size);
+int CSP_EXTERNAL csp_get_program_size(uint8_t *prog_buffer, int size);
 
 /* callbacks that application should define */
 int csp_text_input_callback (char *buf, int max_size);

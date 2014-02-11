@@ -98,9 +98,9 @@
 /**********************************************************/
 
 #ifdef  BUILDING_CSP
-#define EXTERNAL __attribute__((externally_visible))
+#define CSP_EXTERNAL __attribute__((externally_visible))
 #else
-#define EXTERNAL
+#define CSP_EXTERNAL
 #endif
 
 #define CSP_ERR_NONE 0

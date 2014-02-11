@@ -40,7 +40,7 @@ char csp_errstr[CSP_ERRSTR_SIZE];
 
 static const struct csp_names *env_functions;
 
-void EXTERNAL csp_init(void)
+void CSP_EXTERNAL csp_init(void)
 {
     csp_errno = 0;
     csp_errline = 0;
@@ -49,17 +49,17 @@ void EXTERNAL csp_init(void)
 #endif
 }
 
-void EXTERNAL csp_free(void)
+void CSP_EXTERNAL csp_free(void)
 {
 
 }
 
-void EXTERNAL csp_set_environ(const struct csp_names *functions)
+void CSP_EXTERNAL csp_set_environ(const struct csp_names *functions)
 {
     env_functions = functions;
 }
 
-int EXTERNAL csp_parse(uint8_t *prog_buffer, int prog_size)
+int CSP_EXTERNAL csp_parse(uint8_t *prog_buffer, int prog_size)
 {
     uint8_t lex_buf[CSP_LEX_BUFSIZE];
 
@@ -99,7 +99,7 @@ int EXTERNAL csp_parse(uint8_t *prog_buffer, int prog_size)
     return res;
 }
 
-int EXTERNAL csp_get_program_size(uint8_t *prog_buffer, int size)
+int CSP_EXTERNAL csp_get_program_size(uint8_t *prog_buffer, int size)
 {
     if (size < PROGRAM_HEADER_SIZE)
 	return -1;
@@ -108,7 +108,7 @@ int EXTERNAL csp_get_program_size(uint8_t *prog_buffer, int size)
 }
 
 
-void csp_set_error(int err, int line, const char *msg, ...)
+void _csp_set_error(int err, int line, const char *msg, ...)
 {
     va_list va;
 

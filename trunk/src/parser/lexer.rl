@@ -87,7 +87,7 @@
 		yylval->d.num = strtol(YY->ts, &stft, 0);
 		if (*stft != '\0') {
 		    /* is it even posttible? */
-		    set_error(CSP_ERR_LEX_BAD_NUMBER, YY->lineno, "not a number '%s'", YY->ts);
+		    csp_set_error(CSP_ERR_LEX_BAD_NUMBER, YY->lineno, "not a number '%s'", YY->ts);
 		    tok = EOS;
 		} else {
 		    tok = NUM;
@@ -118,7 +118,7 @@ static int rl_identifier_const(YYSTYPE *yylval, struct ragel_lexer_t *YY)
 	    uint8_t saved_tok_char;
 	    YY_PREPARE_TOK;
 
-	    set_error(CSP_ERR_LEX_CONST_UNDEF, YY->lineno, "Undefined: %s", YY->ts);
+	    csp_set_error(CSP_ERR_LEX_CONST_UNDEF, YY->lineno, "Undefined: %s", YY->ts);
 
 	    YY_RELEASE_TOK;
 	    return -1;
@@ -155,7 +155,7 @@ static int _yylex(YYSTYPE *yylval, struct ragel_lexer_t *YY)
     int buffree, buflen, len;
 
     if (prog_check_free_space()){
-	set_error(CSP_ERR_CODE_OVERFLOW, YY->lineno, "Out of program space");
+	csp_set_error(CSP_ERR_CODE_OVERFLOW, YY->lineno, "Out of program space");
 	return -1;
     }
 
@@ -187,7 +187,7 @@ static int _yylex(YYSTYPE *yylval, struct ragel_lexer_t *YY)
 	pe = p;
 
 	if (buffree == 0) {
-	    set_error(CSP_ERR_LEX_OVERFLOW, YY->lineno, "token too long");
+	    csp_set_error(CSP_ERR_LEX_OVERFLOW, YY->lineno, "token too long");
 	    YY->status = LEX_STATUS_OVERFLOW;
 	    break;
 	}
@@ -218,7 +218,7 @@ static int _yylex(YYSTYPE *yylval, struct ragel_lexer_t *YY)
 
     if ( YY->cs == clex_error ) {
 	/* unexpected token */
-	set_error(CSP_ERR_LEX_BAD_TOKEN, YY->lineno, "invalid token");
+	csp_set_error(CSP_ERR_LEX_BAD_TOKEN, YY->lineno, "invalid token");
 	YY->status = LEX_STATUS_BAD_TOKEN;
 	return -1;
     }

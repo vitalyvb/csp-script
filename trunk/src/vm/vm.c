@@ -1041,7 +1041,7 @@ static int find_cache_item(int cachetype, int idx)
 
 }
 
-int EXTERNAL csp_vm_init(uint8_t *vmbuf, int size)
+int CSP_EXTERNAL csp_vm_init(uint8_t *vmbuf, int size)
 {
     if (size < sizeof(struct vm))
 	return -CSP_ERR_VM_GENERIC;
@@ -1054,7 +1054,7 @@ int EXTERNAL csp_vm_init(uint8_t *vmbuf, int size)
     return 0;
 }
 
-int EXTERNAL csp_vm_load_program(uint8_t *code_start, int progsize, int api_fncnt)
+int CSP_EXTERNAL csp_vm_load_program(uint8_t *code_start, int progsize, int api_fncnt)
 {
     struct cache_item *cache;
     uint8_t *code = code_start;
@@ -1139,7 +1139,7 @@ int EXTERNAL csp_vm_load_program(uint8_t *code_start, int progsize, int api_fncn
     return 0;
 }
 
-int EXTERNAL csp_vm_find_func(const char *name)
+int CSP_EXTERNAL csp_vm_find_func(const char *name)
 {
     uint8_t *p = vm->func_names;
     uint8_t *buf_end = p + vm->func_names_len;
@@ -1162,7 +1162,7 @@ int EXTERNAL csp_vm_find_func(const char *name)
     return -1;
 }
 
-int EXTERNAL csp_vm_run_function(int stack_size, int fn, int argc, int *argv)
+int CSP_EXTERNAL csp_vm_run_function(int stack_size, int fn, int argc, int *argv)
 {
     uint8_t *vmbuf;
     uint8_t *code;
@@ -1198,7 +1198,7 @@ int EXTERNAL csp_vm_run_function(int stack_size, int fn, int argc, int *argv)
     return res;
 }
 
-int EXTERNAL csp_vm_get_call_result(void)
+int CSP_EXTERNAL csp_vm_get_call_result(void)
 {
     return vm->func_call_result;
 }

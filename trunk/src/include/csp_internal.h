@@ -40,12 +40,12 @@ struct csp_mapping {
 };
 
 
-void csp_set_error(int err, int line, const char *msg, ...);
+void _csp_set_error(int err, int line, const char *msg, ...);
 
 #if CSP_STRING_ERRORS
-#define set_error csp_set_error
+#define csp_set_error _csp_set_error
 #else
-#define set_error(e,l,x...) csp_set_error((e),(l),NULL)
+#define csp_set_error(e,l,x...) _csp_set_error((e),(l),NULL)
 #endif
 
 /* internal aliases */

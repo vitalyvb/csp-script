@@ -68,13 +68,13 @@ int yydebug = 1;
 
 static void yyerror(void *lex_state, const char *s)
 {
-    set_error(CSP_ERR_PARSER_FAILURE, 0, s);
+    csp_set_error(CSP_ERR_PARSER_FAILURE, 0, s);
 }
 
 
 static void errhnd(int line, const char *s, const char *s2)
 {
-    set_error(CSP_ERR_PARSE_ERROR, line, s, s2);
+    csp_set_error(CSP_ERR_PARSE_ERROR, line, s, s2);
 }
 
 #define HANDLE_ERROR(_n_, _msg_, _msg2_) do { errhnd(_n_, _msg_, _msg2_); YYABORT; } while (0)

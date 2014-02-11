@@ -53,7 +53,7 @@ static void *vm_buffer_alloc(size_t size)
 }
 #endif
 
-int EXTERNAL csp_vm_api_new_array(int num, int argc, int *argv, int *res)
+int CSP_EXTERNAL csp_vm_api_new_array(int num, int argc, int *argv, int *res)
 {
     uint8_t *array;
     struct array_descr *descr;
@@ -118,7 +118,7 @@ int EXTERNAL csp_vm_api_new_array(int num, int argc, int *argv, int *res)
 }
 
 #else
-int EXTERNAL csp_vm_api_new_array(int num, int argc, int *argv, int *res)
+int CSP_EXTERNAL csp_vm_api_new_array(int num, int argc, int *argv, int *res)
 {
     return -CSP_ERR_VM_GENERIC;
 }
