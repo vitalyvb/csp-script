@@ -24,6 +24,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* WARNING
+ *
+ * When new identifier is lexed, lexer returns "new identifier" code
+ * and keeps identifier text data in its buffer.
+ *
+ * It's OK as far as parser handler is called right away, but if parser
+ * requires at least one more token to determine what exact handler should
+ * be called, data in buffer will be destroyed.
+ *
+ * At a current state, NEW_ID must not require additional shifts.
+ *
+ */
+
 %define api.pure
 %parse-param {struct ragel_lexer_t *lex_state}
 %lex-param   {struct ragel_lexer_t *lex_state}
@@ -78,10 +91,6 @@ static void errhnd(int line, const char *s, const char *s2)
 }
 
 #define HANDLE_ERROR(_n_, _msg_, _msg2_) do { errhnd(_n_, _msg_, _msg2_); YYABORT; } while (0)
-#define COPY_TOKEN \
-	char token_value[lex_state->token_len+1];			\
-	memcpy(token_value, lex_state->token, lex_state->token_len);	\
-	token_value[lex_state->token_len] = 0;
 
 %}
 
@@ -129,7 +138,7 @@ struct {
 %left '['
 %start begin
 
-%type <d.num> anyvar
+%type <d.num> anyvar new_id_expr
 
 /* if/else conflict */
 %expect 1
@@ -319,7 +328,22 @@ expr:
 	| expr '/' expr				{ binary_op(OP_BIN_DIV);  }
 	| expr '*' expr				{ binary_op(OP_BIN_MUL);  }
 	| '(' expr ')'
-	| NEW_ID				{ COPY_TOKEN; HANDLE_ERROR($<d.line>1, "Undefined: %s", token_value); }
+	| new_id_expr				{
+							const char *buf;
+							int len;
+							char token_value[CSP_LEX_BUFSIZE];
+							
+							if (visible_var_get_name($1, &buf, &len) == 0){
+								if (len > CSP_LEX_BUFSIZE-1)
+								    len = CSP_LEX_BUFSIZE-1;
+								memcpy(token_value, buf, len);
+								token_value[len] = 0;
+							} else {
+							    token_value[0] = '?';
+							    token_value[1] = 0;
+							}
+							HANDLE_ERROR($<d.line>1, "Undefined: %s", token_value);
+						}
 	| '(' error ')'				{ HANDLE_ERROR($<d.line>2, "Parse error: %s", "expr"); }
 	;
 
@@ -343,7 +367,12 @@ args:
 /**************/
 
 anyvar:	VAR
-	| NEW_ID				{ $$ = local_var_reg((char*)lex_state->token, lex_state->token_len); }
+	| new_id_expr
 	;
 
+new_id_expr:
+	/* See warning at the top.
+	 * Resolved extra shift: "expr:new_id_expr" and "anyvar:new_id_expr"
+	 */
+	NEW_ID					{ $$ = local_var_reg((char*)lex_state->token, lex_state->token_len); }
 %%

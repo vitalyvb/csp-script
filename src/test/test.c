@@ -39,11 +39,15 @@
 char *txt = NULL;
 char *txt_ptr;
 int dataleft;
+int io_max_size = 1000000;
 
 int csp_text_input_callback(char *buf, int max_size)
 {
     if (dataleft < max_size)
 	max_size = dataleft;
+
+    if (io_max_size < max_size)
+	max_size = io_max_size;
 
     if (max_size == 0)
 	return -1;
@@ -205,6 +209,17 @@ int call_func(int argc, char **argv)
     return cargc + 2;
 }
 
+void env_init()
+{
+    char *val;
+
+    val = getenv("TEST_IO_MAX_SIZE");
+    if (val){
+	io_max_size = atoi(val);
+	printf("reducing io size to %d bytes\n", io_max_size);
+    }
+}
+
 int main(int argc, char **argv)
 {
     int progsize = 2000;
@@ -221,6 +236,7 @@ int main(int argc, char **argv)
 	return -1;
     }
 
+    env_init();
 
     eprintf("stack top: %p\n", &parse_res);
 

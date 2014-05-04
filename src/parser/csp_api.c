@@ -40,13 +40,18 @@ char csp_errstr[CSP_ERRSTR_SIZE];
 
 static const struct csp_names *env_functions;
 
-void CSP_EXTERNAL csp_init(void)
+static void _csp_clear_error(void)
 {
     csp_errno = 0;
     csp_errline = 0;
 #if CSP_STRING_ERRORS
     csp_errstr[0] = 0;
 #endif
+}
+
+void CSP_EXTERNAL csp_init(void)
+{
+    _csp_clear_error();
 }
 
 void CSP_EXTERNAL csp_free(void)
@@ -67,6 +72,7 @@ int CSP_EXTERNAL csp_parse(uint8_t *prog_buffer, int prog_size)
     struct ragel_lexer_t lex;
     int res;
 
+    _csp_clear_error();
     gen_init(prog_buffer, prog_size);
 
     scanner_init(&lex, lex_buf, CSP_LEX_BUFSIZE);

@@ -102,10 +102,39 @@ static int ns_register(const char *name, int namelen, struct csp_names *ns)
     return ns->idx++;
 }
 
+static int ns_get_name(int idx, const char **name, int *namelen, struct csp_names *ns)
+{
+    uint8_t *p = ns->buf;
+    uint8_t *buf_end = p + ns->tail;
+    uint8_t len;
+
+    len = *p++;
+    while (len > 0 && (p < buf_end)){
+	if (idx == 0){
+	    if (name)
+		*name = (char*)p;
+	    if (namelen)
+		*namelen = len;
+	    return 0;
+	}
+
+	idx--;
+	p += len;
+	len = *p++;
+    }
+
+    return -1;
+}
+
 
 int global_var_get(const char *name, int namelen)
 {
     return ns_get_idx(name, namelen, global_vars);
+}
+
+static int global_var_get_name(int idx, const char **name, int *namelen)
+{
+    return ns_get_name(idx, name, namelen, global_vars);
 }
 
 int global_var_reg(const char *name, int namelen)
@@ -129,12 +158,25 @@ int local_var_reg(const char *name, int namelen)
     return ns_register(name, namelen, local_vars) + global_vars->idx;
 }
 
+static int local_var_get_name(int idx, const char **name, int *namelen)
+{
+    return ns_get_name(idx, name, namelen, local_vars);
+}
+
 int visible_var_get(const char *name, int namelen)
 {
     int idx = global_var_get(name, namelen);
     if (idx < 0)
 	idx = local_var_get(name, namelen);
     return idx;
+}
+
+int visible_var_get_name(int idx, const char **name, int *namelen)
+{
+    int res = global_var_get_name(idx, name, namelen);
+    if (res < 0)
+	res = local_var_get_name(idx, name, namelen);
+    return res;
 }
 
 
