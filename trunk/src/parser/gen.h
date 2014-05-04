@@ -45,6 +45,7 @@ int local_var_get(const char *name, int namelen);
 int local_var_reg(const char *name, int namelen);
 
 int visible_var_get(const char *name, int namelen);
+int visible_var_get_name(int idx, const char **name, int *namelen);
 
 int func_get(const char *name, int namelen);
 int func_reg(const char *name, int namelen);

@@ -89,7 +89,7 @@ A note about variables and values
 
 While parsing, every human-readable identified is replaced by a 8-bit
 unsigned id. This id is used as an index for a corresponding memory
-region intrnally to get or set a value.
+region internally to get or set a value.
 
 0..N - global variables, (int*) pointer
 N..M - maps, (struct cache_item*)
@@ -119,7 +119,7 @@ As with variables, function names are replaced with ids too.
 0..N - internal unnamed functions for high-level operations like
        array support (N=4 now).
 N..K - functions provided by a host application. Array support
-       requires
+       requires at least one function here
 K..L - user functions
 
 L must be less than 256.
