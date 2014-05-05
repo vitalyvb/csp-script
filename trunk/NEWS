@@ -1,0 +1,11 @@
+Release 20140505
+================
+
+Fixed bugs:
+
+- Clear error information on parser start. Now it's possible
+  to call csp_parse() again after a fail.
+
+- Fixed parser 'Undefined variable' error occuring because of
+  internal buffer containing variable identifier was overwritten
+  if input buffer was filled in small chunks.
