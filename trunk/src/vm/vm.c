@@ -280,6 +280,7 @@ static int mapping_map_value(int mapid, int from, uint8_t **ptr)
 
 	map += SIZE_STR_MAPPING;
 
+	count = count * 2;
 	for (i=0;i<count;i+=2){
 	    if (map[i] == from){
 		if (ptr)
@@ -287,8 +288,14 @@ static int mapping_map_value(int mapid, int from, uint8_t **ptr)
 		return map[i+1];
 	    }
 	}
+
+	/* pair not found */
+	if (ptr)
+	    *ptr = NULL;
+	return 0;
     }
 
+    /* XXX fixme, callers not handle error condition */
     return -CSP_ERR_MAP_INVALID;
 }
 
