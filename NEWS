@@ -5,6 +5,8 @@ Fixed bugs:
 
 - Pair-type mapping returns wrong values.
 
+- Calling a function without a final return may fail.
+
 Release 20140505
 ================
 

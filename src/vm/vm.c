@@ -104,7 +104,7 @@ struct vm_frame {
 #endif
 
     const uint8_t *ret_code;
-    uint32_t ret_size;
+    const uint8_t *ret_code_end;
 
     int *argv;
     int argc;
@@ -542,10 +542,12 @@ static struct u_frame *find_loop_uframe(struct vm_frame *frame)
 static int vm_execute(struct vm_frame *_frame, const uint8_t *code_start, int size)
 {
     const uint8_t *code;
+    const uint8_t *code_end;
     uint8_t opcode;
     uint32_t tmp;
 
     code = code_start;
+    code_end = code + size;
 
 #define STACK_GUARD_SIZE (sizeof(struct vm_frame))
 
@@ -553,7 +555,7 @@ static int vm_execute(struct vm_frame *_frame, const uint8_t *code_start, int si
 #define STACK_MOVE(_cnt_) do { _frame->stack += (int)(_cnt_); } while (0)
 
 
-    while (code < (code_start+size)) {
+    while (code < code_end) {
 
 	if ((uint8_t*)&STACK_VAL(0) - vm->vm_buffer_end < STACK_GUARD_SIZE)
 	    return -CSP_ERR_STACK_OVERFLOW;
@@ -935,11 +937,11 @@ static int vm_execute(struct vm_frame *_frame, const uint8_t *code_start, int si
 		    fr->argv = &STACK_VAL(-args);
 		    fr->argc = args;
 		    fr->ret_code = code;
-		    fr->ret_size = size;
+		    fr->ret_code_end = code_end;
 
 		    _frame = fr;
 		    code = newcode + SIZE_OP_FUNC;
-		    size = newsize;
+		    code_end = code + newsize;
 		}
 
 		break;
@@ -998,7 +1000,7 @@ static int vm_execute(struct vm_frame *_frame, const uint8_t *code_start, int si
 		    }
 
 		    code = f->ret_code;
-		    size = f->ret_size;
+		    code_end = f->ret_code_end;
 		    _frame = PREV_FRAME(_frame);
 
 		    STACK_MOVE(-f->argc + 1);
