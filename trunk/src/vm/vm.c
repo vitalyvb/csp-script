@@ -545,6 +545,7 @@ static int vm_execute(struct vm_frame *_frame, const uint8_t *code_start, int si
     const uint8_t *code_end;
     uint8_t opcode;
     uint32_t tmp;
+    int itmp;
 
     code = code_start;
     code_end = code + size;
@@ -554,6 +555,8 @@ static int vm_execute(struct vm_frame *_frame, const uint8_t *code_start, int si
 #define STACK_VAL(_pos_) (_frame->stack[(_pos_)])
 #define STACK_MOVE(_cnt_) do { _frame->stack += (int)(_cnt_); } while (0)
 
+
+restart_loop:
 
     while (code < code_end) {
 
@@ -989,25 +992,10 @@ static int vm_execute(struct vm_frame *_frame, const uint8_t *code_start, int si
 		    TR("   break/cont");
 		    UFRAME(_frame)->ucode |= opcode << 6;
 		    break;
-		case OP_RETURN:{
-		    struct vm_frame *f = _frame;
-		    int val = STACK_VAL(-1);
-		    TR("RET %d", val);
-
-		    if (!HAVE_PREV_FRAME(_frame)){
-			vm->func_call_result = val;
-			return CSP_ERR_NONE;
-		    }
-
-		    code = f->ret_code;
-		    code_end = f->ret_code_end;
-		    _frame = PREV_FRAME(_frame);
-
-		    STACK_MOVE(-f->argc + 1);
-		    STACK_VAL(-1) = val;
-
-		    break;
-		}
+		case OP_RETURN:
+		    tmp = STACK_VAL(-1);
+		    TR("RET %d", tmp);
+		    goto vm_return;
 		case POP_COUNT:
 		    tmp = *code++;
 		    goto dopoptmp;
@@ -1025,8 +1013,25 @@ static int vm_execute(struct vm_frame *_frame, const uint8_t *code_start, int si
 
     }
 
-    vm->func_call_result = 0;
-    return CSP_ERR_NONE;
+    tmp = 0;
+
+vm_return:
+    /* variable tmp holds return value */
+
+    if (!HAVE_PREV_FRAME(_frame)){
+	vm->func_call_result = tmp;
+	return CSP_ERR_NONE;
+    }
+
+    itmp = _frame->argc;
+    code = _frame->ret_code;
+    code_end = _frame->ret_code_end;
+    _frame = PREV_FRAME(_frame);
+
+    STACK_MOVE(-itmp + 1);
+    STACK_VAL(-1) = tmp;
+
+    goto restart_loop;
 }
 
 
