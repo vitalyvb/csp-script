@@ -107,8 +107,9 @@ parenthesis and operators
 
 Operators and precedence (lowest to highest)
     =
+    || &&
     > < >= <= == !=
-    | & ^ || &&
+    | & ^
     + -
     / * %
     -(unary) ~ !
