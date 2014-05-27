@@ -1,3 +1,5 @@
+//@ test 1
+
 function test(i)
 {
     i=3333;

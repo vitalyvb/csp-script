@@ -121,21 +121,15 @@ struct {
 %token EOS 139
 
 %right '='
-
-%left <d.num> NUM 140
-%left <d.num> VAR 141
-%left <d.num> FUNC 142
-%left <d.num> NEW_ID 143
-%left <d.num> NCONST 144
-
+%left <d.num> NUM 140 VAR 141 FUNC 142 NEW_ID 143 NCONST 144
+%left SY_OROR 150 SY_ANDAND 151
 %left '>' '<' SY_GE 145 SY_LE 146 SY_EQ 148 SY_NEQ 149
-
-%left '|' '&' '^' SY_OROR 150 SY_ANDAND 151
-
+%left '|' '&' '^'
 %left '+' '-'
 %left '/' '*' '%'
 %left NEG 152 '~' '!'
 %left '['
+
 %start begin
 
 %type <d.num> anyvar new_id_expr
